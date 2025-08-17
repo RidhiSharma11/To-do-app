@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+    }
+    .left-pane {
+      width: 40%;
+      background: #f4f4f4;
+      padding: 20px;
+      overflow-y: auto;
+      border-right: 2px solid #ddd;
+    }
+    .right-pane {
+      width: 60%;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 100%;
+      padding: 10px;
+      font-size: 16px;
+      resize: none;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 5px;
+    }
+    li.completed span {
+      text-decoration: line-through;
+      color: gray;
+    }
+    .task-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .icons {
+      display: flex;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .icons span {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="left-pane">
+    <h2>My Tasks</h2>
+    <ul id="task-list"></ul>
+  </div>
+
+  <div class="right-pane">
+    <h2>Add / Edit Task</h2>
+    <textarea id="task-input" placeholder="Type a task and press ENTER..."></textarea>
+  </div>
+
+  <script>
+    const taskInput = document.getElementById("task-input");
+    const taskList = document.getElementById("task-list");
+
+    // Load tasks from localStorage
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    renderTasks();
+
+    // Add task on ENTER
+    taskInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        const text = taskInput.value.trim();
+        if (text) {
+          tasks.push({ text: text, completed: false });
+          saveTasks();
+          renderTasks();
+          taskInput.value = "";
+        }
+      }
+    });
+
+    // Render tasks
+    function renderTasks() {
+      taskList.innerHTML = "";
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        if (task.completed) li.classList.add("completed");
+
+        const leftDiv = document.createElement("div");
+        leftDiv.classList.add("task-left");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = task.completed;
+        checkbox.addEventListener("change", () => toggleTask(index));
+
+        const span = document.createElement("span");
+        span.textContent = task.text;
+
+        leftDiv.appendChild(checkbox);
+        leftDiv.appendChild(span);
+
+        const iconsDiv = document.createElement("div");
+        iconsDiv.classList.add("icons");
+
+        const edit = document.createElement("span");
+        edit.textContent = "✏️";
+        edit.addEventListener("click", () => editTask(index));
+
+        const del = document.createElement("span");
+        del.textContent = "❌";
+        del.addEventListener("click", () => deleteTask(index));
+
+        iconsDiv.appendChild(edit);
+        iconsDiv.appendChild(del);
+
+        li.appendChild(leftDiv);
+        li.appendChild(iconsDiv);
+        taskList.appendChild(li);
+      });
+    }
+
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function toggleTask(index) {
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks();
+      renderTasks();
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderTasks();
+    }
+
+    function editTask(index) {
+      const newName = prompt("Update your task:", tasks[index].text);
+      if (newName !== null && newName.trim() !== "") {
+        tasks[index].text = newName.trim();
+        saveTasks();
+        renderTasks();
+      }
+    }
+  </script>
+</body>
+</html>
